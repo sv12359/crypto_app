@@ -33,7 +33,7 @@ const Table: React.FC = () => {
     // }
 
     return (
-        <div>
+        <div className="table-container">
             <h1>Table</h1>
             {data.length > 0 && 
                 <table>
