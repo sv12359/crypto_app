@@ -2,6 +2,7 @@ import React from "react";
 import { useEffect, useState } from "react";
 
 import { cryptoItem, cryptoArray } from "../types/cryptoTypes";
+import Item from "./Item.tsx"
 
 
 const Table: React.FC = () => {
@@ -31,9 +32,6 @@ const Table: React.FC = () => {
     //     console.log(msg.data)
     // }
 
-    const item: cryptoItem = data[0];
-   
-
     return (
         <div>
             <h1>Table</h1>
@@ -50,13 +48,15 @@ const Table: React.FC = () => {
                     </thead>
 
                     <tbody>
-                        <tr>
-                            <td>{item.rank}</td>
-                            <td>{item.symbol}</td>
-                            <td>{item.name}</td>
-                            <td>{Number(item.priceUsd).toFixed(2)}</td>
-                            <td>{Number(item.changePercent24Hr).toFixed(2)}</td>
-                        </tr>
+                        {data.map((item) => (
+                            <Item 
+                                rank={item.rank} 
+                                symbol={item.symbol} 
+                                name={item.name} 
+                                priceUsd={item.priceUsd} 
+                                changePercent24Hr={item.changePercent24Hr}
+                            />
+                        ))}
                     </tbody>
                 </table>
             }
