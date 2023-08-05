@@ -6,6 +6,8 @@ import { useForm, type SubmitHandler } from "react-hook-form";
 import { cryptoItem, cryptoArray } from "../types/cryptoTypes";
 import Item from "./Item.tsx"
 
+
+
 enum Column {
     rank,
     symbol,
@@ -14,19 +16,56 @@ enum Column {
     changePercent24Hr,
 }
 
+
+
 enum SortType {
     ascending,
     descending
 }
 
 type TableForm = {
-    sortBy: Column,
+    column: Column,
     sortType: SortType,
     searchValue: string,
 }
 
+
+
+class SortFunctions {
+    sortFunctionsDictionary: { [key: number]:  (a: cryptoItem, b: cryptoItem) => number } = {};
+    
+    constructor () {
+        this.sortFunctionsDictionary[Column.rank] = (a: cryptoItem, b: cryptoItem) => { return Number(a.rank) - Number(b.rank)};
+        this.sortFunctionsDictionary[Column.symbol] = (a: cryptoItem, b: cryptoItem) => { return a.symbol.localeCompare(b.symbol)};
+        this.sortFunctionsDictionary[Column.name] = (a: cryptoItem, b: cryptoItem) => { return a.name.localeCompare(b.name)};
+        this.sortFunctionsDictionary[Column.priceUsd] = (a: cryptoItem, b: cryptoItem) => { return Number(a.priceUsd) - Number(b.priceUsd)};
+        this.sortFunctionsDictionary[Column.changePercent24Hr] = (a: cryptoItem, b: cryptoItem) => { return Number(a.changePercent24Hr) - Number(b.changePercent24Hr)};
+    }
+
+}
+
 const Table: React.FC = () => {
     const [data, setData] = useState<cryptoItem[]>([]);
+    const [displayedData, setDisplayedData] = useState<cryptoItem[]>([]);
+    
+    function sortItems(newData: cryptoItem[],column: Column, sortType: SortType) {
+        const sortFunction = new SortFunctions().sortFunctionsDictionary[column];
+        newData.sort(sortFunction);
+        if (sortType === SortType.descending) {
+            newData.reverse();
+        }
+    }
+
+    function filterItems(searchValue: string) {
+        return data.filter((item) => item.name.toLocaleLowerCase().includes(searchValue));
+    }
+
+    const onSubmit: SubmitHandler<TableForm> = (formData: TableForm, event) => {
+        event?.preventDefault();
+        const newData = filterItems(formData.searchValue.trim().toLocaleLowerCase());
+        sortItems(newData, Number(formData.column), Number(formData.sortType))
+        setDisplayedData(newData);
+    }
 
     // Gets crypto data from coincap website.
     useEffect(() => {
@@ -36,7 +75,9 @@ const Table: React.FC = () => {
         .then((response) => response.json())
         .then((res) => {
             if (res) {
+              sortItems(res.data, Column.rank, SortType.ascending);
               setData(res.data);
+              setDisplayedData(res.data);
             }
             
         }).catch((error) => {
@@ -54,17 +95,11 @@ const Table: React.FC = () => {
 
     const { register, handleSubmit } = useForm<TableForm>({
         defaultValues: {
-            sortBy: Column.rank,
+            column: Column.rank,
             sortType: SortType.ascending,
             searchValue: "",
         },
     });
-
-    const onSubmit: SubmitHandler<TableForm> = (formData: TableForm, event) => {
-        event?.preventDefault();
-        console.log("Form submited: " + JSON.stringify(formData));
-        // console.log(Column.symbol === Number(formData.sortBy));
-    }
 
     return (
         <div className="table-container">
@@ -76,7 +111,7 @@ const Table: React.FC = () => {
                             <div className="form-column">
                                 <label htmlFor="columns">Sort by column:</label>
 
-                                <select id="columns" {...register("sortBy")} defaultValue={"rank"}>
+                                <select id="columns" {...register("column")} defaultValue={"rank"}>
                                     <option value={0}>Rank</option>
                                     <option value={1}>Symbol</option>
                                     <option value={2}>Name</option>
@@ -90,7 +125,7 @@ const Table: React.FC = () => {
                                         type="radio"
                                         value="0"
                                         id="ascending"
-                                        checked={true}
+                                        defaultChecked={true}
                                     />
                                     ascending
                                 </label>
@@ -101,6 +136,7 @@ const Table: React.FC = () => {
                                         type="radio"
                                         value="1"
                                         id="descending"
+                                        defaultChecked={false}
                                     />
                                     descending
                                 </label>
@@ -128,10 +164,9 @@ const Table: React.FC = () => {
                             </thead>
 
                             <tbody>
-                                {data.map((item) => (
+                                {displayedData.map((item) => (
                                     <tr key={item.id}>
                                     <Item
-                                        id={item.id}
                                         rank={item.rank} 
                                         symbol={item.symbol} 
                                         name={item.name} 

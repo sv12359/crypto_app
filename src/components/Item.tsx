@@ -1,6 +1,5 @@
 
 type ItemProps = {
-    id: string,
     rank: string,
     symbol: string,
     name: string,
@@ -8,7 +7,7 @@ type ItemProps = {
     changePercent24Hr: string,
 }
 
-const Item: React.FC<ItemProps> = ({ id, rank, symbol, name, priceUsd, changePercent24Hr}: ItemProps) => {
+const Item: React.FC<ItemProps> = ({rank, symbol, name, priceUsd, changePercent24Hr}: ItemProps) => {
     return ( 
         <>
             <td>{rank}</td>

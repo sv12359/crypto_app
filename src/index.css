@@ -9,7 +9,7 @@
     flex-direction: column;
     align-items: center;
     margin-top: 5rem;
-    padding: 0.1rem;
+    padding: 0.5rem;
 }
 
 table {
@@ -24,6 +24,7 @@ th, td {
     padding-right: 1rem;
     text-align: center;
     vertical-align: middle;
+    width: 11rem;
 }
 
 th {
