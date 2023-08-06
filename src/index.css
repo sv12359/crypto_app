@@ -32,12 +32,6 @@ th {
     background-color: orangered;
 }
 
-tbody tr:nth-child(even) {
-    background-color: whitesmoke;
-}
-
-
-
 header {
     display: flex;
     align-items: center;
@@ -65,10 +59,6 @@ h1 {
 }
 
 
-
-
-
-
 .form-inputs {
     display: flex;
     justify-content: space-between;
@@ -86,22 +76,37 @@ h1 {
 }
 
 button {
-    width: 30%;
+    width: 20%;
     min-width: 3rem;
     height: 2rem;
     border-radius: 0.5rem;
     justify-self: end;
+    background-color: brown;
+    color: white;
+}
+
+.text-input, .select-input {
+    height: 2rem;
+    border-radius: 0.5rem;
+    border:  0.05rem solid grey;
+    border-color: brown;
 }
 
 .text-input {
-    height: 2rem;
-    /* width: 80%; */
-    border-radius: 0.5rem;
-    border:  0.05rem solid grey;
+    background-color: lightyellow;
+    padding-left: 0.5rem;
+}
+
+.select-input {
+    width: 50%;
+    background-color: lightyellow;
+    color: brown;
+    padding-left: 0.5rem;
+
 
 }
 
-.search-input {
+.text-input-container {
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -111,22 +116,113 @@ input, select, button {
     margin-top: 0.5rem;
 }
 
+.form-label {
+    color: brown;
+    font-weight: bold;
+}
+
+.radio-label {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    color: brown;
+    font-size: 0.75rem;
+}
+
+.radio-input {
+    margin-right: 0.3rem;
+}
+
+.radio-name {
+    font-size: 0.75rem;
+    font-weight: normal;
+    margin-top: 0.5rem;
+    color: brown;
+}
+
+
+
+.row-highlight-off:nth-child(even){
+    background-color: whitesmoke;
+}
+
+.row-highlight-off:nth-child(odd){
+    background-color: white;
+}
+
+@keyframes initialBackgroundEven {
+    from {
+      background: whitesmoke;
+    }
+  }
+
+@keyframes initialBackgroundOdd {
+    from {
+      background: white;
+    }
+  }
+  
+@keyframes finalBackgroundEven {
+    to {
+        background: whitesmoke;
+    }
+}
+
+@keyframes finalBackgroundOdd {
+    to {
+        background: white;
+    }
+}
+
+
+.row-highlight-green:nth-child(even) {
+    background-color: lightgreen;
+    animation: initialBackgroundEven 0.25s forwards, finalBackgroundEven 0.25s forwards 0.5s;
+}
+
+.row-highlight-green:nth-child(odd) {
+    background-color: lightgreen;
+    animation: initialBackgroundOdd 0.25s forwards, finalBackgroundOdd 0.25s forwards 0.5s;
+}
+
+.row-highlight-red:nth-child(even) {
+    background-color: lightcoral;
+    animation: initialBackgroundEven 0.25s forwards, finalBackgroundEven 0.25s forwards 0.5s;
+}
+
+.row-highlight-red:nth-child(odd) {
+    background-color: lightcoral;
+    animation: initialBackgroundOdd 0.25s forwards, finalBackgroundOdd 0.25s forwards 0.5s;
+}
+
+
 @media only screen and (max-width: 620px) {
     th, td {
       padding: 0.25rem;
       padding-left: 0.5rem;
       padding-right: 0.5rem;
     }
-    th, td, label, button, select {
+    th, td, label, button {
         font-size: 0.7rem;
 
+    }
+
+    .text-input, .select-input {
+        height: 1rem;
+    }
+
+    select, input, .radio-label, .radio-name{
+        font-size: 0.4rem;
     }
   }
 
 
 @media only screen and (max-width: 400px) {
-    th, td, label, button, select {
+    th, td, label, select, .radio-label, input, .radio-name{
         font-size: 0.4rem;
+    }
 
+    .form-label, button {
+        font-size: 0.5rem;
     }
 }

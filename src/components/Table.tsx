@@ -3,10 +3,24 @@ import React from "react";
 import { useEffect, useState } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 
-import { cryptoItem, cryptoArray } from "../types/cryptoTypes";
 import Item from "./Item.tsx"
 
+const ITEMS_TO_LOAD = 100;
+const ITEMS_TO_UPDATE = 5;
 
+export type cryptoItem = {
+    id: string,
+    rank: string,
+    symbol: string,
+    name: string,
+    supply: string,
+    maxSupply: string,
+    marketCapUsd: string,
+    volumeUsd24Hr: string,
+    priceUsd: string,
+    changePercent24Hr: string,
+    vwap24Hr: string,
+}
 
 enum Column {
     rank,
@@ -60,16 +74,20 @@ const Table: React.FC = () => {
         return data.filter((item) => item.name.toLocaleLowerCase().includes(searchValue));
     }
 
-    const onSubmit: SubmitHandler<TableForm> = (formData: TableForm, event) => {
-        event?.preventDefault();
+    function displayData(formData: TableForm) {
         const newData = filterItems(formData.searchValue.trim().toLocaleLowerCase());
         sortItems(newData, Number(formData.column), Number(formData.sortType))
         setDisplayedData(newData);
     }
 
+    const onSubmit: SubmitHandler<TableForm> = (formData: TableForm, event) => {
+        event?.preventDefault();
+        displayData(formData);
+    }
+
     // Gets crypto data from coincap website.
     useEffect(() => {
-      const fetchUrl = 'https://api.coincap.io/v2/assets/?limit=100';
+      const fetchUrl = 'https://api.coincap.io/v2/assets/?limit=' + ITEMS_TO_LOAD;
 
       fetch(fetchUrl, { method: "GET" })
         .then((response) => response.json())
@@ -85,14 +103,7 @@ const Table: React.FC = () => {
         })
     }, []);
 
-
-    // // Gets data from coincap websocket.
-    // const pricesWs = new WebSocket('wss://ws.coincap.io/prices?assets=bitcoin,ethereum,monero,litecoin')
-    // pricesWs.onmessage = function (msg) {
-    //     console.log(msg.data)
-    // }
-
-
+    
     const { register, handleSubmit } = useForm<TableForm>({
         defaultValues: {
             column: Column.rank,
@@ -100,6 +111,60 @@ const Table: React.FC = () => {
             searchValue: "",
         },
     });
+
+    //Updates price.
+    let names = "";
+
+    for (let i = 0; i < ITEMS_TO_UPDATE; ++i) {
+        if (i <= data.length - 1) {
+            names += data[i].id;
+        }
+
+        if (i + 1 < ITEMS_TO_UPDATE) {
+            names += ","
+        }
+    }
+    const url = 'wss://ws.coincap.io/prices?assets=' + names;
+    // Gets data from coincap websocket.
+    useEffect(() => {
+        const pricesWs = new WebSocket(url);
+        pricesWs.onmessage = function (msg) {
+            
+            for (const item of displayedData) {
+                const classSetter = classSetterDict[item.id][0];
+                const classValue = classSetterDict[item.id][1];
+                if (classValue === "row-highlight-green" || classValue === "row-highlight-red") {
+                    setTimeout(() => {
+                        classSetter("row-highlight-off");
+                    }, 500);
+                }
+                
+            }
+            for (const item of displayedData) {
+                const newPriceValue = JSON.parse(msg.data)[item.id];
+                if (newPriceValue !== undefined) {
+                    const classSetter = classSetterDict[item.id][0];
+                    const priceSetter = priceSetterDict[item.id][0];
+                    const priceValue = priceSetterDict[item.id][1];
+
+                    if (Number(newPriceValue) > Number(priceValue)) {
+                        classSetter("row-highlight-green");
+                    } else if (Number(newPriceValue) < Number(priceValue)) {
+                        classSetter("row-highlight-red");
+                    }
+                    priceSetter(newPriceValue);
+                }
+            }
+        }
+    });
+
+
+
+    
+
+    const classSetterDict: { [key: string]: [(highlightClass: string) => void, string]} = {};
+    const priceSetterDict: { [key: string]: [(highlightClass: string) => void, string]} = {};
+
 
     return (
         <div className="table-container">
@@ -109,9 +174,9 @@ const Table: React.FC = () => {
                     <form onSubmit={handleSubmit(onSubmit)}>
                         <div className="form-inputs">
                             <div className="form-column">
-                                <label htmlFor="columns">Sort by column:</label>
+                                <label className="form-label" htmlFor="columns">Sort by column:</label>
 
-                                <select id="columns" {...register("column")} defaultValue={"rank"}>
+                                <select className="select-input" id="columns" {...register("column")} defaultValue={"rank"}>
                                     <option value={0}>Rank</option>
                                     <option value={1}>Symbol</option>
                                     <option value={2}>Name</option>
@@ -119,32 +184,32 @@ const Table: React.FC = () => {
                                     <option value={4}>Change 24h</option>
                                 </select>
 
-                                <label htmlFor="ascending">
-                                    <input
+                                <label className="radio-label" htmlFor="ascending">
+                                    <input className="radio-input"
                                         {...register("sortType")}
                                         type="radio"
                                         value="0"
                                         id="ascending"
                                         defaultChecked={true}
                                     />
-                                    ascending
+                                    <h2 className="radio-name">ascending</h2>
                                 </label>
 
-                                <label htmlFor="descending">
-                                    <input
+                                <label className="radio-label" htmlFor="descending">
+                                    <input className="radio-input"
                                         {...register("sortType")}
                                         type="radio"
                                         value="1"
                                         id="descending"
                                         defaultChecked={false}
                                     />
-                                    descending
+                                    <h2 className="radio-name">descending</h2>
                                 </label>
                             </div>
 
                             <div className="form-column">
-                                <div className="search-input">
-                                    <label htmlFor="searchValue">Search by name:</label>
+                                <div className="text-input-container">
+                                    <label className="form-label" htmlFor="searchValue">Search by name:</label>
                                     <input id="searchValue" className="text-input" {...register("searchValue")}></input>
                                 </div>
                                 <button type="submit">Apply</button>
@@ -165,15 +230,16 @@ const Table: React.FC = () => {
 
                             <tbody>
                                 {displayedData.map((item) => (
-                                    <tr key={item.id}>
-                                    <Item
+                                    <Item key={item.id}
+                                        id={item.id}
                                         rank={item.rank} 
                                         symbol={item.symbol} 
                                         name={item.name} 
                                         priceUsd={item.priceUsd} 
                                         changePercent24Hr={item.changePercent24Hr}
+                                        classSetterDict={classSetterDict}
+                                        priceSetterDict={priceSetterDict}
                                     />
-                                    </tr>
                                 ))}
                             </tbody>
                         </table>
